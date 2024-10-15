@@ -9,9 +9,9 @@ contract ERC7765ExampleTest is Test {
     MultiplePrivilegeManagement private example;
     address private owner;
     address private user1;
-    uint256 private tokenId = 1;
-    uint256 private privilegeId = 1;
-    uint256 private unknownPrivilegeId = 2;
+    uint256 private constant TOKEN_ID = 1;
+    uint256 private constant PRIVILEGE_ID = 1;
+    uint256 private constant UNKNOWN_PRIVILEGE_ID = 2;
 
     function setUp() public {
         owner = address(this);
@@ -20,7 +20,6 @@ contract ERC7765ExampleTest is Test {
     }
 
     function testReleasePrivilege() public {
-
         example.releasePrivilege(
             "Test Privilege",
             "Privilege for testing",
@@ -28,27 +27,21 @@ contract ERC7765ExampleTest is Test {
             1,
             100
         );
-        
+
         (
             uint256 id, 
             string memory name,,
-            // string memory description, 
             uint256 expiration,,,
-            // uint256 tokenIdRangeStart,
-            // uint256 tokenIdRangeEnd,
-            // uint256 exerciseCount
-        ) = example.privileges(privilegeId);
+        ) = example.privileges(PRIVILEGE_ID);
         
-        assertEq(id, privilegeId);
+        assertEq(id, PRIVILEGE_ID);
         assertEq(name, "Test Privilege");
         assertTrue(expiration > block.timestamp);
     }
 
     function testExercisePrivilegeInvalidId() public {
-        // First, mint a token to the user
-        example.safeMint(user1, tokenId);
-        
-        // Release a privilege
+        example.safeMint(user1, TOKEN_ID);
+
         example.releasePrivilege(
             "Test Privilege",
             "Privilege for testing",
@@ -59,16 +52,13 @@ contract ERC7765ExampleTest is Test {
 
         vm.expectRevert("The privilege does not exist");
 
-        // Act as user and exercise privilege
         vm.prank(user1);
-        example.exercisePrivilege(user1, tokenId, unknownPrivilegeId, "");
+        example.exercisePrivilege(user1, TOKEN_ID, UNKNOWN_PRIVILEGE_ID, "");
     }
 
     function testExercisePrivilegeInvalidTo() public {
-        // First, mint a token to the user
-        example.safeMint(user1, tokenId);
-        
-        // Release a privilege
+        example.safeMint(user1, TOKEN_ID);
+
         example.releasePrivilege(
             "Test Privilege",
             "Privilege for testing",
@@ -78,17 +68,14 @@ contract ERC7765ExampleTest is Test {
         );
 
         vm.expectRevert("The privilege does not exist");
-        
-        // Act as user and exercise privilege
+
         vm.prank(owner);
-        example.exercisePrivilege(owner, tokenId, unknownPrivilegeId, "");
+        example.exercisePrivilege(owner, TOKEN_ID, UNKNOWN_PRIVILEGE_ID, "");
     }
 
     function testExercisePrivilegeInvalidTokenId() public {
-        // First, mint a token to the user
-        example.safeMint(user1, tokenId);
-        
-        // Release a privilege
+        example.safeMint(user1, TOKEN_ID);
+
         example.releasePrivilege(
             "Test Privilege",
             "Privilege for testing",
@@ -99,16 +86,13 @@ contract ERC7765ExampleTest is Test {
 
         vm.expectRevert("The _tokenId is out of range");
 
-        // Act as user and exercise privilege
         vm.prank(user1);
-        example.exercisePrivilege(user1, tokenId, privilegeId, "");
+        example.exercisePrivilege(user1, TOKEN_ID, PRIVILEGE_ID, "");
     }
 
     function testExercisePrivilegeInvalidExpiration() public {
-        // First, mint a token to the user
-        example.safeMint(user1, tokenId);
-        
-        // Release a privilege
+        example.safeMint(user1, TOKEN_ID);
+
         example.releasePrivilege(
             "Test Privilege",
             "Privilege for testing",
@@ -119,16 +103,13 @@ contract ERC7765ExampleTest is Test {
 
         vm.expectRevert("The privilege has expired");
 
-        // Act as user and exercise privilege
         vm.prank(user1);
-        example.exercisePrivilege(user1, tokenId, privilegeId, "");
+        example.exercisePrivilege(user1, TOKEN_ID, PRIVILEGE_ID, "");
     }
 
     function testExercisePrivilegeDuplicate() public {
-        // First, mint a token to the user
-        example.safeMint(user1, tokenId);
-        
-        // Release a privilege
+        example.safeMint(user1, TOKEN_ID);
+
         example.releasePrivilege(
             "Test Privilege",
             "Privilege for testing",
@@ -137,21 +118,18 @@ contract ERC7765ExampleTest is Test {
             100
         );
 
-        // Act as user and exercise privilege
         vm.prank(user1);
-        example.exercisePrivilege(user1, tokenId, privilegeId, "");
+        example.exercisePrivilege(user1, TOKEN_ID, PRIVILEGE_ID, "");
 
         vm.expectRevert("You had exercised this privilege");
 
         vm.prank(user1);
-        example.exercisePrivilege(user1, tokenId, privilegeId, "");
+        example.exercisePrivilege(user1, TOKEN_ID, PRIVILEGE_ID, "");
     }
 
     function testExercisePrivilege() public {
-        // First, mint a token to the user
-        example.safeMint(user1, tokenId);
-        
-        // Release a privilege
+        example.safeMint(user1, TOKEN_ID);
+
         example.releasePrivilege(
             "Test Privilege",
             "Privilege for testing",
@@ -160,21 +138,18 @@ contract ERC7765ExampleTest is Test {
             100
         );
 
-        // Act as user and exercise privilege
         vm.prank(user1);
-        example.exercisePrivilege(user1, tokenId, privilegeId, "");
+        example.exercisePrivilege(user1, TOKEN_ID, PRIVILEGE_ID, "");
 
-        // Check if the privilege is exercised
-        address exercisedBy = example.privilegeExercisedInfo(tokenId, privilegeId);
+        address exercisedBy = example.privilegeExercisedInfo(TOKEN_ID, PRIVILEGE_ID);
         assertEq(exercisedBy, user1);
 
-        // Check if the privilege has been marked as exercised
-        bool exercisable = example.isExercisable(user1, tokenId, privilegeId);
+        bool exercisable = example.isExercisable(user1, TOKEN_ID, PRIVILEGE_ID);
         assertFalse(exercisable);
     }
 
     function testIsExercised() public {
-        example.safeMint(user1, tokenId);
+        example.safeMint(user1, TOKEN_ID);
         example.releasePrivilege(
             "Test Privilege",
             "Privilege for testing",
@@ -184,14 +159,14 @@ contract ERC7765ExampleTest is Test {
         );
 
         vm.prank(user1);
-        example.exercisePrivilege(user1, tokenId, privilegeId, "");
+        example.exercisePrivilege(user1, TOKEN_ID, PRIVILEGE_ID, "");
 
-        bool exercised = example.isExercised(user1, tokenId, privilegeId);
+        bool exercised = example.isExercised(user1, TOKEN_ID, PRIVILEGE_ID);
         assertTrue(exercised);
     }
 
     function testGetPrivilegeIds() public {
-        example.safeMint(user1, tokenId);
+        example.safeMint(user1, TOKEN_ID);
         example.releasePrivilege(
             "Test Privilege",
             "Privilege for testing",
@@ -201,11 +176,11 @@ contract ERC7765ExampleTest is Test {
         );
 
         vm.prank(user1);
-        example.exercisePrivilege(user1, tokenId, privilegeId, "");
+        example.exercisePrivilege(user1, TOKEN_ID, PRIVILEGE_ID, "");
 
-        uint256[] memory privileges = example.getPrivilegeIds(tokenId);
+        uint256[] memory privileges = example.getPrivilegeIds(TOKEN_ID);
         assertEq(privileges.length, 1);
-        assertEq(privileges[0], privilegeId);
+        assertEq(privileges[0], PRIVILEGE_ID);
     }
 
     function testPrivilegeURI() public {
@@ -217,7 +192,7 @@ contract ERC7765ExampleTest is Test {
             100
         );
 
-        string memory uri = example.privilegeURI(privilegeId);
+        string memory uri = example.privilegeURI(PRIVILEGE_ID);
         assertTrue(bytes(uri).length > 0);
     }
 }
